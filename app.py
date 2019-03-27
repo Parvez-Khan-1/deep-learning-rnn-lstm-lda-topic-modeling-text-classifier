@@ -87,7 +87,11 @@ def get_metrics(y_true, y_pred):
     label = [0,1,2,3,4]
     return precision_recall_fscore_support(y_true,y_pred,labels=label,average="micro")
 
-filenames = ['../data/reviews.csv']
+parser = argparse.ArgumentParser(description='This script trains or evaluate a model.')
+parser.add_argument('--train', default='data/train_all.csv', help="Filepaths of CSV files with the 'text' and 'label' headers.")
+args = parser.parse_args()
+
+filenames = args.train.split(',')
 epochs = 100
 emb_dim = 128
 batch_size = 256
