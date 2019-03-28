@@ -89,6 +89,7 @@ def get_metrics(y_true, y_pred):
     return precision_recall_fscore_support(y_true,y_pred,labels=label,average="micro")
 
 parser = argparse.ArgumentParser(description='This script trains or evaluate a model.')
+parser.add_argument('--method', default='rnn', help="The algorithm to perform.")
 parser.add_argument('--train', default=None, help="Filepath of the train file with the 'text' and 'label' headers.")
 parser.add_argument('--test', default=None, help="Filepath of the test file with the 'text' and 'label' headers.")
 parser.add_argument('--model', default=None, help="Filepath of the hfs5 file.")
@@ -100,27 +101,30 @@ parser.add_argument('--batch_size', default=256, type=int, help="Size of the bat
 args = parser.parse_args()
 
 num_classes = args.num_classes
-if args.train is not None:
-  filenames = args.train.split(',')
-  epochs = args.epochs
-  n_most_common_words = args.num_words
-  emb_dim = args.emb_dim
-  batch_size = args.batch_size
-  models = train(filenames, epochs, num_classes, emb_dim, batch_size, n_most_common_words)
-elif args.model is not None and args.test is not None:
-  models = args.model.split(',')
-  filenames = args.test.split(',')
-  for model_file in models:
-    model = load_model(model_file)
-    for filename in filenames:
-      print(model_file, filename)
-      X_train, X_test, y_train, y_test = file_to_data(filename)
-      y_pred = model.predict(X_test)
-      y_pred_classes = np.argmax(y_pred, axis=1)
-      y_test_classes = np.argmax(y_test, axis=1)
-      cm = confusion_matrix(y_test_classes, y_pred_classes)
-      print('Precision, recall, fscore, support:', get_metrics(y_test_classes, y_pred_classes))
-      accr = model.evaluate(X_test,y_test)
-      print('Test set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0],accr[1]))
-      plot_cm(cm, num_classes)
-      json.dump(accr, open('results/%s_%s.json'%(model_file.split('/')[-1],filename.split('/')[-1]),'w'))
+if args.method == 'rnn':
+	if args.train is not None:
+	  filenames = args.train.split(',')
+	  epochs = args.epochs
+	  n_most_common_words = args.num_words
+	  emb_dim = args.emb_dim
+	  batch_size = args.batch_size
+	  models = train(filenames, epochs, num_classes, emb_dim, batch_size, n_most_common_words)
+	elif args.model is not None and args.test is not None:
+	  models = args.model.split(',')
+	  filenames = args.test.split(',')
+	  for model_file in models:
+	    model = load_model(model_file)
+	    for filename in filenames:
+	      print(model_file, filename)
+	      X_train, X_test, y_train, y_test = file_to_data(filename)
+	      y_pred = model.predict(X_test)
+	      y_pred_classes = np.argmax(y_pred, axis=1)
+	      y_test_classes = np.argmax(y_test, axis=1)
+	      cm = confusion_matrix(y_test_classes, y_pred_classes)
+	      print('Precision, recall, fscore, support:', get_metrics(y_test_classes, y_pred_classes))
+	      accr = model.evaluate(X_test,y_test)
+	      print('Test set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0],accr[1]))
+	      plot_cm(cm, num_classes)
+	      json.dump(accr, open('results/%s_%s.json'%(model_file.split('/')[-1],filename.split('/')[-1]),'w'))
+elif args.method == 'ldavec':
+	print('ldavec')
